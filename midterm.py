@@ -1,10 +1,3 @@
-"""
-python3.7
-numpy
-pyplot
-pip install xlrd==1.2.0
-"""
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -75,7 +68,7 @@ ret_2015to2019_df = ret_all_df.iloc[193:]
 
 avgreturn = []
 for i, column in enumerate(ret_all_df):
-    avgreturn.append(ret_all_df[column].mean())
+	avgreturn.append(ret_all_df[column].mean())
 avgreturn = np.array(avgreturn)
 print("avg returns for each stock")
 print(avgreturn)
@@ -91,11 +84,11 @@ print(avgreturn)
 # meanstd_pair = []
 
 # for stock in sfile:
-# 	mean = sum(sfile[stock])/len(sfile[stock])
-# 	var = sum([((x - mean) ** 2) for x in sfile[stock]])/len(sfile[stock])
-# 	std = var ** 0.5
-# 	meanstd_pair.append([mean, std])
-# 	# print("stock, "+str(mean)+" "+str(std))
+#   mean = sum(sfile[stock])/len(sfile[stock])
+#   var = sum([((x - mean) ** 2) for x in sfile[stock]])/len(sfile[stock])
+#   std = var ** 0.5
+#   meanstd_pair.append([mean, std])
+#   # print("stock, "+str(mean)+" "+str(std))
 # # print(meanstd_pair)
 
 # meanstd_pair = np.array(meanstd_pair)
@@ -225,68 +218,68 @@ print(avgreturn)
 #***************************************************
 
 # (1) create portfolio(x) w/ optimal weight
-returns = ret_2015to2019_df.T
 
 #----- Optimization ---------
-solvers.options['show_progress'] = False
-n = len(returns)
-# returns = np.asmatrix(returns)
+# def get_optimal_weight(returns):
+# 	solvers.options['show_progress'] = False
+# 	n = len(returns)
+# 	# returns = np.asmatrix(returns)
 
-N = 100
-mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
+# 	N = 100
+# 	mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
 
-# cvopt objective
-S = opt.matrix(np.cov(returns))
-pbar = opt.matrix(np.mean(returns, axis=1))
-# constraints
-G = -opt.matrix(np.eye(n))   
-h = opt.matrix(0.0, (n ,1))
-A = opt.matrix(1.0, (1, n))
-b = opt.matrix(1.0)
+# 	# cvopt objective
+# 	S = opt.matrix(np.cov(returns))
+# 	pbar = opt.matrix(np.mean(returns, axis=1))
+# 	# constraints
+# 	G = -opt.matrix(np.eye(n))   
+# 	h = opt.matrix(0.0, (n ,1))
+# 	A = opt.matrix(1.0, (1, n))
+# 	b = opt.matrix(1.0)
 
-portfolios = [solvers.qp(mu*S, -pbar, G, h, A, b)['x'] 
-              for mu in mus]
-returns = [blas.dot(pbar, x) for x in portfolios]
-risks = [np.sqrt(blas.dot(x, S*x)) for x in portfolios]
+# 	portfolios = [solvers.qp(mu*S, -pbar, G, h, A, b)['x'] 
+# 				  for mu in mus]
+# 	returns = [blas.dot(pbar, x) for x in portfolios]
+# 	risks = [np.sqrt(blas.dot(x, S*x)) for x in portfolios]
 
-m1 = np.polyfit(returns, risks, 2)
-x1 = np.sqrt(m1[2] / m1[0])
-wt = solvers.qp(opt.matrix(x1 * S), -pbar, G, h, A, b)['x']
+# 	m1 = np.polyfit(returns, risks, 2)
+# 	x1 = np.sqrt(m1[2] / m1[0])
+# 	wt = solvers.qp(opt.matrix(x1 * S), -pbar, G, h, A, b)['x']
+# 	return wt
 
-# assign solved optimal weight
-x_weights = np.array(wt).flatten()
-print("solve optimal weights")
-print(x_weights)
+# # assign solved optimal weight
+# wt = get_optimal_weight(ret_2015to2019_df.T)
+# x_weights = np.array(wt).flatten()
+# print("solve optimal weights")
+# print(x_weights)
 
-x_monthly_expected_return = []
-for i, row in ret_2015to2019_df.iterrows():
-	x_monthly_return = row
-	x_monthly_expected_return.append(np.dot(x_weights, x_monthly_return))
+# x_monthly_expected_return = []
+# for i, row in ret_2015to2019_df.iterrows():
+# 	x_monthly_return = row
+# 	x_monthly_expected_return.append(np.dot(x_weights, x_monthly_return))
 
 
-# (2) create portfolio(y) w/ equal weight
-y_weight = np.full(21, 1/21)
-y_monthly_expected_return = []
-for i, row in ret_2015to2019_df.iterrows():
-	y_monthly_return = row
-	y_monthly_expected_return.append(np.dot(y_weight, y_monthly_return))
-# print(len(y_monthly_expected_return))
-# print(y_monthly_expected_return)
+# # (2) create portfolio(y) w/ equal weight
+# y_weight = np.full(21, 1/21)
+# y_monthly_expected_return = []
+# for i, row in ret_2015to2019_df.iterrows():
+# 	y_monthly_return = row
+# 	y_monthly_expected_return.append(np.dot(y_weight, y_monthly_return))
 
 #========
 # Part A
 #========
-x_monthly_expected_return = np.array(x_monthly_expected_return)
-x_mean = np.mean(x_monthly_expected_return)
-x_sigma = np.std(x_monthly_expected_return)
-print("x mean, x std: ")
-print(x_mean, x_sigma)
+# x_monthly_expected_return = np.array(x_monthly_expected_return)
+# x_mean = np.mean(x_monthly_expected_return)
+# x_sigma = np.std(x_monthly_expected_return)
+# print("x mean, x std: ")
+# print(x_mean, x_sigma)
 
-y_monthly_expected_return = np.array(y_monthly_expected_return)
-y_mean = np.mean(y_monthly_expected_return)
-y_sigma = np.std(y_monthly_expected_return)
-print("y mean, y std: ")
-print(y_mean, y_sigma)
+# y_monthly_expected_return = np.array(y_monthly_expected_return)
+# y_mean = np.mean(y_monthly_expected_return)
+# y_sigma = np.std(y_monthly_expected_return)
+# print("y mean, y std: ")
+# print(y_mean, y_sigma)
 
 #========
 # Part B
@@ -308,3 +301,22 @@ print(y_mean, y_sigma)
 # Problem 3
 #***************************************************
 
+#========
+# Part A
+#========
+
+# Compute M Scores
+def compute_M_score(n, m):
+	pass
+
+
+# dec 2014
+print(ret_1999to2014_df)
+
+
+# Then repeat Problem 2
+
+
+#========
+# Part B
+#========
