@@ -17,7 +17,7 @@ filename = "ISYE6227_project_dataset.xlsx"
 df = pd.read_excel(filename, sheet_name = None)
 # allsheetnames = list(df.keys())
 # sheetnames = allsheetnames[:-21] #-3
-sheetnames = ['CVS','KO','PG','DWDP','GE','COP','CVX','MSFT','CSCO','CAH','MCK','JPM','BAC','VLO','TGT','HD','ADM','BA','F','VZ','KR']
+sheetnames = ['CVS','KO']#,'PG','DWDP','GE','COP','CVX','MSFT','CSCO','CAH','MCK','JPM','BAC','VLO','TGT','HD','ADM','BA','F','VZ','KR']
 print(sheetnames)
 
 col = "Adj Close"
@@ -28,6 +28,9 @@ for sheet in sheetnames:
 	for index, row in df_terms.iterrows():
 		terms.append(row[col])
 	sfile[sheet] = terms
+sprice_all_df = pd.DataFrame(sfile)
+sprice_1999to2014_df = sprice_all_df.iloc[0:193]
+sprice_2015to2019_df = sprice_all_df.iloc[193:]
 
 
 # Reading Covariance
@@ -306,12 +309,35 @@ print(avgreturn)
 #========
 
 # Compute M Scores
-def compute_M_score(n, m):
-	pass
+def compute_M_scores(n, m, lastidx = 193):
+	print("December 2014 stock price")
+	
+	prices = sprice_1999to2014_df.iloc[lastidx-1:lastidx].values[0] # Dec2014
+	prices_t_1 = sprice_1999to2014_df.iloc[lastidx-1-1:lastidx-1].values[0]
+	prices_t_n = sprice_1999to2014_df.iloc[lastidx-1-n:lastidx-n].values[0]
+	prices_t_m = sprice_1999to2014_df.iloc[lastidx-1-m:lastidx-m].values[0]
+	print(sprice_1999to2014_df)
+	print(prices_t_1)
+	print(prices_t_n)
+	print(prices_t_m)
 
+	mscores = []
+	for i in range(0, len(prices)):
+		R1 = np.log(prices_t_1[i]/prices_t_n[i])
+		R2 = np.log(prices_t_m[i]/prices_t_1[i])
+		M = 0.5*R1 + 0.5*R2
+		mscores.append(M)
 
-# dec 2014
-print(ret_1999to2014_df)
+	return mscores
+
+# compute m scores
+mscores = compute_M_scores(n=2, m=3)
+print(mscores)
+
+# pick top mscores and corresponding column indx
+
+#
+
 
 
 # Then repeat Problem 2
