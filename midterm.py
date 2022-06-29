@@ -8,6 +8,12 @@ pip install xlrd==1.2.0
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import cvxopt as opt
+from cvxopt import blas, solvers
+
+#***************************************************
+# Utility functions
+#***************************************************
 
 
 #***************************************************
@@ -18,7 +24,7 @@ filename = "ISYE6227_project_dataset.xlsx"
 df = pd.read_excel(filename, sheet_name = None)
 # allsheetnames = list(df.keys())
 # sheetnames = allsheetnames[:-21] #-3
-sheetnames = ['CVS','KO','PG']#,'DWDP','GE','COP','CVX','MSFT','CSCO','CAH','MCK','JPM','BAC','VLO','TGT','HD','ADM','BA','F','VZ','KR']
+sheetnames = ['CVS','KO','PG','DWDP','GE','COP','CVX','MSFT','CSCO','CAH','MCK','JPM','BAC','VLO','TGT','HD','ADM','BA','F','VZ','KR']
 print(sheetnames)
 
 col = "Adj Close"
@@ -218,13 +224,49 @@ print(avgreturn)
 # Problem 2
 #***************************************************
 
-# create portfolio(x) w/ optimal weight
+# (1) create portfolio(x) w/ optimal weight
+returns = ret_2015to2019_df.T
+
+#----- Optimization ---------
+solvers.options['show_progress'] = False
+n = len(returns)
+# returns = np.asmatrix(returns)
+
+N = 100
+mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
+
+# cvopt objective
+S = opt.matrix(np.cov(returns))
+pbar = opt.matrix(np.mean(returns, axis=1))
+# constraints
+G = -opt.matrix(np.eye(n))   
+h = opt.matrix(0.0, (n ,1))
+A = opt.matrix(1.0, (1, n))
+b = opt.matrix(1.0)
+
+portfolios = [solvers.qp(mu*S, -pbar, G, h, A, b)['x'] 
+              for mu in mus]
+returns = [blas.dot(pbar, x) for x in portfolios]
+risks = [np.sqrt(blas.dot(x, S*x)) for x in portfolios]
+
+m1 = np.polyfit(returns, risks, 2)
+x1 = np.sqrt(m1[2] / m1[0])
+wt = solvers.qp(opt.matrix(x1 * S), -pbar, G, h, A, b)['x']
+
+# assign solved optimal weight
+x_weights = np.array(wt).flatten()
+print("solve optimal weights")
+print(x_weights)
+
+x_monthly_expected_return = []
+for i, row in ret_2015to2019_df.iterrows():
+	x_monthly_return = row
+	x_monthly_expected_return.append(np.dot(x_weights, x_monthly_return))
 
 
-# create portfolio(y) w/ equal weight
-y_weight = np.full(3, 1/21)
+# (2) create portfolio(y) w/ equal weight
+y_weight = np.full(21, 1/21)
 y_monthly_expected_return = []
-
 for i, row in ret_2015to2019_df.iterrows():
 	y_monthly_return = row
 	y_monthly_expected_return.append(np.dot(y_weight, y_monthly_return))
@@ -234,6 +276,12 @@ for i, row in ret_2015to2019_df.iterrows():
 #========
 # Part A
 #========
+x_monthly_expected_return = np.array(x_monthly_expected_return)
+x_mean = np.mean(x_monthly_expected_return)
+x_sigma = np.std(x_monthly_expected_return)
+print("x mean, x std: ")
+print(x_mean, x_sigma)
+
 y_monthly_expected_return = np.array(y_monthly_expected_return)
 y_mean = np.mean(y_monthly_expected_return)
 y_sigma = np.std(y_monthly_expected_return)
@@ -245,4 +293,18 @@ print(y_mean, y_sigma)
 #========
 
 # Answer:
-# one with better expected return or less volatility is better
+# The results we got are
+# x mean: 1.0397481140644071
+# x_std: 0.1353880658257495
+# y mean: 1.0091138793483676
+# y std: 0.04302419027382689
+
+# Portfolio X with optimal weights performs better.
+# However, the risk associated with it is also higher
+
+
+
+#***************************************************
+# Problem 3
+#***************************************************
+
