@@ -222,15 +222,27 @@ print(avgreturn)
 
 
 # create portfolio(y) w/ equal weight
-y_weight = np.full(21, 1/21)
+y_weight = np.full(3, 1/21)
 y_monthly_expected_return = []
 
-for i, row in ret_2015to2019.iterrows():
+for i, row in ret_2015to2019_df.iterrows():
 	y_monthly_return = row
 	y_monthly_expected_return.append(np.dot(y_weight, y_monthly_return))
-print(len(y_monthly_expected_return))
+# print(len(y_monthly_expected_return))
+# print(y_monthly_expected_return)
 
 #========
 # Part A
 #========
-# y_mean = 
+y_monthly_expected_return = np.array(y_monthly_expected_return)
+y_mean = np.mean(y_monthly_expected_return)
+y_sigma = np.std(y_monthly_expected_return)
+print("y mean, y std: ")
+print(y_mean, y_sigma)
+
+#========
+# Part B
+#========
+
+# Answer:
+# one with better expected return or less volatility is better
